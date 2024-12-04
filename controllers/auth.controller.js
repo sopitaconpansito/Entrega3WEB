@@ -81,13 +81,13 @@ export const authController = {
       // genera el token JWT
       const token = jwt.sign(payload, clave);
 
-      // establece cookie con el token
+      // guarda el token en una cookie
       res.cookie('token', token, {
         httpOnly: true,
         secure: false,
         sameSite: 'lax',
       });
-
+      // le avisamos que se logeo bien
       return res.status(200).json({
         message: 'Login exitoso',
         token,
