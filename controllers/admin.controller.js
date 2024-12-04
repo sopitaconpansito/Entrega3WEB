@@ -1,7 +1,7 @@
 import sql from '../db.js';
 
 export const adminController = {
-  // Obtener el total de ganancias y los productos
+  // obtener el total de ganancias y los productos
   getTotal: async (req, res) => {
     try {
       const money = await sql('SELECT SUM(amount) AS total FROM sales');
