@@ -1,6 +1,6 @@
 import sql from '../db.js';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcryptjs'; // corregir typo en 'bycrypt'
 
 const clave = 'INSAAAID'; // clave para firmar el JWT
 
@@ -10,95 +10,88 @@ export const authController = {
     const { name, email, password } = req.body;
     try {
       // verifica si el email ya esta registrado
-      const existingUser = await sql('SELECT * FROM users WHERE email = $1', [
-        email,
-      ]);
+      const existingUser = await sql('SELECT * FROM users WHERE email = $1', [email]);
       if (existingUser.length > 0) {
-        return res
-          .status(400)
-          .json({ message: 'El correo electrónico ya está registrado.' });
+        return res.status(400).json({ message: 'El correo electrónico ya está registrado.' });
       }
 
-      const hashedPassword = await bcrypt.hash(password,10);
+      // hashea la contraseña
+      const hashedPassword = await bcrypt.hash(password, 10);
 
       // crear nuevo usuario
       const newUser = await sql(
         'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-        [name, email, hashedPassword],
+        [name, email, hashedPassword]
       );
 
+      // obtiene el usuario recién creado
+      const createdUser = newUser[0];
+
       const payload = {
-        id: loggedUser.id,
-        role: loggedUser.admin,
+        id: createdUser.id, // corregir id de loggedUser a createdUser
+        role: createdUser.admin || 'user', // asegurar un valor por defecto
       };
-      
-      // Genera el token incluyendo el ID y el atributo isAdmin
+
+      // genera el token JWT
       const token = jwt.sign(payload, clave);
 
-      // Crear cookie
+      // establece cookie con el token
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false,
+        secure: false, // cambiar a true en producción si usas HTTPS
         sameSite: 'lax',
       });
 
       return res.status(200).json({
         ok: true,
-        message: 'Usuario registrado con exito',
-        token
+        message: 'Usuario registrado con éxito',
+        token,
       });
-      
     } catch (error) {
       console.error('Error al registrar usuario:', error);
       res.status(500).json({ message: 'Error del servidor' });
     }
   },
 
-  // Login de usuario
+  // login de usuario
   login: async (req, res) => {
+    const { email, password } = req.body;
     try {
-      const { email, password } = req.body;
+      // busca el usuario en la base de datos
+      const user = await sql('SELECT * FROM users WHERE email = $1', [email]);
 
-      // Busca el usuario en la base de datos
-      const user = await sql(
-        'SELECT * FROM users WHERE email = $1',
-        [email],
-      );
-
-      // Verifica si el usuario existe
+      // verifica si el usuario existe
       if (!user.length) {
         return res.status(401).json({ message: 'Credenciales inválidas' });
       }
 
-      // Toma el primer usuario (deberías asegurarte de que solo hay uno)
+      // toma el primer usuario
       const loggedUser = user[0];
 
-      const hashedPassword = loggedUser.password;
-      const validPassword = await bycrypt.compare(password, hashedPassword);
-
-      // Verifica si la contraseña es válida
+      // verifica la contraseña
+      const validPassword = await bcrypt.compare(password, loggedUser.password);
       if (!validPassword) {
         return res.status(401).json({ message: 'Credenciales inválidas' });
       }
 
       const payload = {
         id: loggedUser.id,
-        role: loggedUser.admin,
+        role: loggedUser.admin || 'user', // asegurar un valor por defecto
       };
 
-      // Genera el token incluyendo el ID y el atributo isAdmin
+      // genera el token JWT
       const token = jwt.sign(payload, clave);
 
-      // Crear cookie
+      // establece cookie con el token
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false,
+        secure: false, // cambiar a true en producción si usas HTTPS
         sameSite: 'lax',
       });
 
       return res.status(200).json({
         message: 'Login exitoso',
-        token
+        token,
       });
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
