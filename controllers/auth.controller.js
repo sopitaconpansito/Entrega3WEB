@@ -2,14 +2,14 @@ import sql from '../db.js';
 import jwt from 'jsonwebtoken';
 import bycrypt from 'bcryptjs';
 
-const clave = 'INSAAAID'; // Clave para firmar el JWT
+const clave = 'INSAAAID'; // clave para firmar el JWT
 
 export const authController = {
-  // Registro de usuario
+  // registro de usuario
   register: async (req, res) => {
     const { name, email, password } = req.body;
     try {
-      // Verificar si el email ya está registrado
+      // verifica si el email ya esta registrado
       const existingUser = await sql('SELECT * FROM users WHERE email = $1', [
         email,
       ]);
@@ -19,7 +19,8 @@ export const authController = {
           .json({ message: 'El correo electrónico ya está registrado.' });
       }
 
-      // Crear nuevo usuario
+
+      // crear nuevo usuario
       const newUser = await sql(
         'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
         [name, email, password],
