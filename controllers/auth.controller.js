@@ -19,15 +19,35 @@ export const authController = {
           .json({ message: 'El correo electrónico ya está registrado.' });
       }
 
+      const hashedPassword = await bycrypt.hash(password,10);
 
       // crear nuevo usuario
       const newUser = await sql(
         'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-        [name, email, password],
+        [name, email, hashedPassword],
       );
-      res
-        .status(201)
-        .json({ message: 'Usuario registrado exitosamente', user: newUser[0] });
+
+      const payload = {
+        id: loggedUser.id,
+        role: loggedUser.admin,
+      };
+      
+      // Genera el token incluyendo el ID y el atributo isAdmin
+      const token = jwt.sign(payload, clave);
+
+      // Crear cookie
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: 'lax',
+      });
+
+      return res.status(200).json({
+        ok: true,
+        message: 'Usuario registrado con exito',
+        token
+      });
+      
     } catch (error) {
       console.error('Error al registrar usuario:', error);
       res.status(500).json({ message: 'Error del servidor' });
