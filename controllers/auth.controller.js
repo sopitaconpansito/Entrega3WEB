@@ -1,6 +1,6 @@
 import sql from '../db.js';
 import jwt from 'jsonwebtoken';
-import bycrypt from 'bcryptjs';
+import bcrypt from 'bcryptjs'
 
 const clave = 'INSAAAID'; // clave para firmar el JWT
 
@@ -19,7 +19,7 @@ export const authController = {
           .json({ message: 'El correo electrónico ya está registrado.' });
       }
 
-      const hashedPassword = await bycrypt.hash(password,10);
+      const hashedPassword = await bcrypt.hash(password,10);
 
       // crear nuevo usuario
       const newUser = await sql(
