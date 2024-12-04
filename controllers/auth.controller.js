@@ -15,21 +15,21 @@ export const authController = {
         return res.status(400).json({ message: 'El correo electrónico ya está registrado.' });
       }
 
-      // hashea la contraseña
+      // hashea la contraseña d pana
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // crear nuevo usuario
+      // crea el nuevo usuario con la contra ya hasheada
       const newUser = await sql(
         'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
         [name, email, hashedPassword]
       );
 
-      // obtiene el usuario recién creado
+      // obtiene el usuario recien creado
       const createdUser = newUser[0];
 
       const payload = {
-        id: createdUser.id, // corregir id de loggedUser a createdUser
-        role: createdUser.admin || 'user', // asegurar un valor por defecto
+        id: createdUser.id, 
+        role: createdUser.admin, 
       };
 
       // genera el token JWT
@@ -38,10 +38,10 @@ export const authController = {
       // establece cookie con el token
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false, // cambiar a true en producción si usas HTTPS
+        secure: false,
         sameSite: 'lax',
       });
-
+      //le avisamos que se registro correctamente
       return res.status(200).json({
         ok: true,
         message: 'Usuario registrado con éxito',
@@ -57,18 +57,17 @@ export const authController = {
   login: async (req, res) => {
     const { email, password } = req.body;
     try {
-      // busca el usuario en la base de datos
+      //busca el usuario con el correo
       const user = await sql('SELECT * FROM users WHERE email = $1', [email]);
 
-      // verifica si el usuario existe
+      // si no lo encuentra, chao nomas
       if (!user.length) {
         return res.status(401).json({ message: 'Credenciales inválidas' });
       }
-
-      // toma el primer usuario
+      // agarra este user
       const loggedUser = user[0];
 
-      // verifica la contraseña
+      // revisa si la clave que puso es igual
       const validPassword = await bcrypt.compare(password, loggedUser.password);
       if (!validPassword) {
         return res.status(401).json({ message: 'Credenciales inválidas' });
@@ -76,7 +75,7 @@ export const authController = {
 
       const payload = {
         id: loggedUser.id,
-        role: loggedUser.admin || 'user', // asegurar un valor por defecto
+        role: loggedUser.admin,
       };
 
       // genera el token JWT
@@ -85,7 +84,7 @@ export const authController = {
       // establece cookie con el token
       res.cookie('token', token, {
         httpOnly: true,
-        secure: false, // cambiar a true en producción si usas HTTPS
+        secure: false,
         sameSite: 'lax',
       });
 
