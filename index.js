@@ -6,7 +6,7 @@ import YAML from 'yamljs';
 
 const PORT = 3001;
 
-// - Rutas - 
+// - rutas - 
 import authRouter from './routes/auth.route.js';
 import productsRouter from './routes/products.route.js';
 import cartRouter from './routes/cart.route.js';
