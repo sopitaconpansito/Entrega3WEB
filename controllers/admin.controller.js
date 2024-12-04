@@ -13,7 +13,7 @@ export const adminController = {
     }
   },
 
-  // Agregar un producto
+  // Agregar un productos
   addNewProduct: async (req, res) => {
     const { stock, name, price, image_path, description } = req.body;
     try {
